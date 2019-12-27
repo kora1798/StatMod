@@ -1,0 +1,304 @@
+---
+title: "StatMod3"
+author: "Igor"
+date: '24 мая 2019 г '
+output: word_document
+---
+
+```{r}
+library(ggplot2)
+library(memisc)
+library(DescTools)
+library(broom)
+library(caTools)
+library(lmtest)
+library(dplyr)
+library(readxl)
+```
+
+```{r}
+housing <- read.csv("C:/Users/Igor/Downloads/housing.csv")
+housing <- housing[1:150,]
+set.seed(56)
+split <- sample.split(housing$median_house_value,SplitRatio = 0.75)
+train <- subset(housing,split == TRUE)
+test <- subset(housing,split == FALSE)
+model_1 <- lm(data=train, median_house_value ~ median_income)
+summary(model_1)
+```
+```{r}
+summary(lm(data=train,median_house_value ~ median_income))$r.squared
+summary(lm(data=train,median_house_value ~ median_income))$adj.r.squared
+```
+```{r}
+summary(lm(data=train,median_house_value ~ median_income))$sigma^2
+```
+
+```{r}
+glance(model_1)
+```
+Вывод об оценке качества подгонки: 
+Коэффициент детерминации равен 0.6153, скорректированный равен 0.6118, что является средним показателем.
+Остаточная дисперсия имеет довольно большое значение.
+Можно сделать вывод о том, что построенная нами регрессионная модель являеся недостаточно точной.
+
+
+Проверка различных параметров относительно параетров уравнения: 
+F-критерий: так как p-value<0.05, то гипотезу об отсутствии линейной связи отвергаем.
+t-критерий: так как p-value<0.05, то гипотезу о незначимости фактора X отвергаем.
+```{r}
+plot(model_1$fitted.values,model_1$residuals)
+qplot(y=model_1$fitted.values,x=model_1$residuals)
+```
+Вывод о случайном характере остатков: судя по графику остатки носят случайный характер, так как на графике нет направленности в расположении точек E.
+```{r}
+mean(model_1$residuals)
+```
+```{r}
+a<-mean(model_1$residuals)
+b<-sd(model_1$residuals,na.rm = FALSE)
+n<-sqrt(110)
+tm<-a/b*n
+str(tm)
+```
+```{r}
+qt(0.95,42125)
+```
+Вывод о равенстве матожидания остатков равна нулю: так как |tрасч| < tтабл, то принимается нулевая гипотеза о равенстве матожидания остатков нулю.
+```{r}
+bptest(model_1)
+```
+Вывод: так как p-value > 0.05, то гипотеза о гомоскедастичности остатков принимается.
+```{r}
+cor.test(train$median_income,model_1$residuals,method="spearman")
+```
+Вывод: так как p-value < 0.05, то гипотеза о гомоскедастичности остатков отвергается.
+```{r}
+bgtest(model_1)
+dwtest(model_1)
+```
+Вывод: поскольку значение p-value < 0.05 нулевая гипотеза об отсутствии
+автокорреляции остатков отвергается.
+```{r}
+qqnorm(model_1$residuals)
+```
+```{r}
+library(sm)
+Z<-model_1$residuals
+hist(Z)
+sm.density(model_1$residuals,model="Normal", xlab="Residual",ylab="Функция плотности распределения")
+```
+```{r}
+library(nortest)
+lillie.test(model_1$residuals)
+```
+Вывод: так как значение p-value меньше 0.05, нулевая гипотеза о согласии распределения
+остатков с нормальным законом распределения отвергается.
+```{r}
+sh<-model_1$residuals[1:4990]
+View(sh)
+shapiro.test(sh)
+```
+Вывод: так как значение p-value меньше 0.05, нулевая гипотеза о согласии распределения
+остатков с нормальным законом распределения отвергается.
+```{r}
+test$model_1<-predict(model_1,test)
+#View(test$model_1)
+plot(test$median_income,test$median_house_value)
+lines(test$median_income,predict(model_1,test),col='red')
+```
+Выводы о корректировке модели: 
+1. В нашей модели можно наблюдать автокорреляцию в остатках. То есть имеется зависимость случайных компонент наблдений с различными номерами. Это приводит к получению неэффективных оценок.
+2. Наши остатки не распределеные нормально и это приводит к получению несостоятельных оценок, и как следствие приводящих к ненадежным прогнозам.
+
+
+```{r}
+insurance <- read.csv("C:/Users/Igor/Downloads/LifeExpectancyData2.csv")
+#View(housing)
+names(insurance)
+```
+
+```{r}
+insurance2<- select(insurance,-"Country",-"Year",-"Status",-"thinness..1.19.years"  ,-"thinness.5.9.years",-"percentage.expenditure",-"Total.expenditure",-"under.five.deaths",-"Alcohol",-"Hepatitis.B",-"Measles",-"Polio",-"Diphtheria",-"Population",-"BMI", -"GDP",-"infant.deaths")
+```
+
+```{r}
+names(insurance2)
+```
+
+```{r}
+insurance2 <- insurance2[1:500,]
+```
+
+
+```{r}
+set.seed(1821)
+split<-sample.split(insurance2$Life.expectancy,SplitRatio = 0.75)
+train<-subset(insurance2,split==TRUE)
+test<-subset(insurance2,split==FALSE)
+train_y<-train$Life.expectancy
+train_x<-train%>%select(-"Life.expectancy")%>%data.matrix()
+test_x<-test%>%select(-"Life.expectancy")%>%data.matrix()
+```
+
+```{r}
+m_lm <-lm(Life.expectancy~.,data=train)
+summary(m_lm)
+```
+```{r}
+test$predict<-predict(m_lm,test)
+```
+
+```{r}
+View(test)
+```
+
+```{r}
+glance(m_lm)
+```
+Вывод об оценке качества подгонки: 
+Коэффициент скорректированной детерминации равен 0.832, что является хорошим показателем.
+Остаточная дисперсия имеет небольшое значение и это тоже хорошо.
+Можно сделать вывод о том, что построенная нами регрессионная модель являеся достаточно точной.
+
+Проверка различных параметров относительно параетров уравнения: 
+F-критерий: так как p-value<0.05, то гипотезу об отсутствии линейной связи отвергаем.
+t-критерий: так как p-value<0.05, то гипотезу о незначимости фактора X отвергаем.
+
+```{r}
+plot(m_lm$fitted.values,m_lm$residuals)
+qplot(y=m_lm$fitted.values,x=m_lm$residuals)
+```
+Вывод о случайном характере остатков: судя по графику остатки носят случайный характер, так как на графике нет направленности в расположении точек E.
+
+```{r}
+mean(m_lm$residuals)
+```
+```{r}
+a<-mean(m_lm$residuals)
+b<-sd(m_lm$residuals,na.rm = FALSE)
+n<-sqrt(110)
+tm<-a/b*n
+str(tm)
+```
+```{r}
+qt(0.95,42125)
+```
+Вывод о равенстве матожидания остатков нулю: так как |tрасч| < tтабл, то принимается нулевая гипотеза о равенстве матожидания остатков нулю.
+
+
+```{r}
+bptest(m_lm)
+```
+Вывод о гомоскедастичности остатков: так как p-value < 0.05, то гипотеза о гомоскедастичности остатков отвергается.
+```{r}
+cor.test(train$Life.expectancy,m_lm$residuals,method="spearman")
+```
+Вывод о гомоскедастичности остатков: так как p-value < 0.05, то гипотеза о гомоскедастичности остатков отвергается.
+```{r}
+bgtest(m_lm)
+dwtest(m_lm)
+```
+Вывод: поскольку значение p-value < 0.05 нулевая гипотеза об отсутствии
+автокорреляции остатков отвергается.
+
+```{r}
+qqnorm(m_lm$residuals)
+```
+```{r}
+library(sm)
+Z<-m_lm$residuals
+hist(Z)
+sm.density(m_lm$residuals,model="Normal", xlab="Residual",ylab="Функция плотности распределения")
+```
+```{r}
+library(nortest)
+lillie.test(m_lm$residuals)
+```
+Вывод: так как значение p-value меньше 0.05, нулевая гипотеза о согласии распределения
+остатков с нормальным законом распределения отвергается.
+
+```{r}
+ggplot(test, aes(x = Life.expectancy, y = predict)) + geom_point() + geom_abline() +
+scale_x_continuous(limits = c(30, 90), expand = c(0, 0)) +
+scale_y_continuous(limits = c(30, 90), expand = c(0, 0))
+```
+```{r}
+VIF(m_lm)
+```
+Вывод: отсутствие мультиколлинеарности.
+```{r}
+lambdas <- seq(0, 150, by = 0.025)
+set.seed(1877)
+library(glmnet)
+cv_ridge <- cv.glmnet(train_x, train_y, alpha = 0, lambda = lambdas)
+plot(cv_ridge)
+```
+```{r}
+cv_ridge$lambda.min
+```
+```{r}
+set.seed(1877)
+m_ridge <- glmnet(train_x, train_y, alpha = 0, lambda = cv_ridge$lambda.min)
+coef(m_ridge)
+```
+```{r}
+test$ridge <- predict(m_ridge, s = cv_ridge$lambda.min, newx = test_x)
+```
+
+```{r}
+set.seed(1886)
+cv_lasso <- cv.glmnet(train_x, train_y, alpha = 1, lambda = lambdas)
+plot(cv_lasso)
+```
+```{r}
+cv_lasso$lambda.min
+```
+
+```{r}
+set.seed(1886)
+m_lasso <- glmnet(train_x, train_y, alpha = 1, lambda = cv_lasso$lambda.min)
+coef(m_lasso)
+```
+
+```{r}
+test$lasso <- predict(m_lasso, s = cv_lasso$lambda.min, newx = test_x)
+```
+
+```{r}
+matrix(c("","MAPE","RMSE","MAE",
+       "Method MNK",MAPE(x = test$predict, ref = test$Life.expectancy),RMSE(x = test$predict, ref = test$Life.expectancy),MAE(x = test$predict, ref = test$Life.expectancy),
+       "Method Ridge",
+       MAPE(x = test$ridge, ref = test$Life.expectancy),
+       RMSE(x = test$ridge, ref = test$Life.expectancy),
+       MAE(x = test$ridge, ref = test$Life.expectancy),
+       "Method Lasso",
+       MAPE(x = test$lasso, ref = test$Life.expectancy),
+       RMSE(x = test$lasso, ref = test$Life.expectancy),
+       MAE(x = test$lasso, ref = test$Life.expectancy)),ncol = 4, byrow = TRUE)
+```
+Результаты сравнения метрик: лучше всего показал себя метод Ридж. Они имеют минимальные значения всех трех показателей.
+Вывод о корректировке модели:
+1. Остатки не гомоскедастичны.
+2. В нашей модели можно наблюдать автокорреляцию в остатках. То есть имеется зависимость случайных компонент наблдений с различными номерами. Это приводит к получению неэффективных оценок.
+3. Наши остатки не распределеные нормально и это приводит к получению несостоятельных оценок, и как следствие приводящих к ненадежным прогнозам.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

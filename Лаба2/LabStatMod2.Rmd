@@ -1,0 +1,537 @@
+---
+title: "StatMod2"
+author: "Igor"
+date: '21 мая 2019 г '
+output: word_document
+---
+
+ТЕМА 1.
+
+Генерация распределений:
+
+```{r}
+set.seed(0)
+x1 = rnorm(1000,22,33)
+x2 = rexp(600,11)
+x3 = rbinom(600,30,0.6)
+str(x1)
+str(x2)
+str(x3)
+```
+
+Оценка параметров:
+1) Для нормального распределения:
+```{r}
+a = mean(x1);a
+si = sd(x1);si
+```
+2) Для показательного распределения:
+```{r}
+lambda = 1/mean(x2);lambda
+```
+3) Для биноминального закона распределения:
+```{r}
+n = mean(x3)/0.6;n
+p = mean(x3)/30;p
+```
+Вывод:
+Для оценивания неизвестных параметров используем метод моментов. 
+Среднее значение выборки с НЗР равно 21.37762, а стандартное отклонение равно 32.93416
+Значение лямбда для ПЗР равно 11.14121
+Количество успешных случайных величин равно 30.03611 а вероятность их появления равно 0.6007222
+
+ТЕМА 2.
+
+Генерация 20 выборок с n = 10, распределенной по НЗР:
+```{r}
+n <- 10
+varCount <- 20
+foo = rnorm
+xs <- foo (n * varCount, 40,33);
+M <- matrix(xs,varCount,n);
+```
+Значения оценок:
+```{r}
+rez1 <- apply (M,1,function(x)(2/n)*sum(x))
+rez2 <- apply (M,1,function(x)((n+1)/n)*max(x))
+rez3 <- apply (M,1,function(x)(2*quantile(x,c(0.5))))
+str(rez1)
+str(rez2)
+str(rez3)
+```
+Отображение получившихся оценок:
+```{r}
+plot(rez1,col="red")
+lines(rez1, col = "red")
+par(new = T)
+plot(rez2, col="blue")
+lines(rez2,col="blue")
+par(new = T)
+plot(rez3, col = "yellow")
+lines(rez3, col = "yellow")
+par(new = F)
+```
+Среднеквадратические отклонения:
+```{r}
+p11 <- sd(rez1);p11
+p12 <- sd(rez2);p12
+p13 <- sd(rez3);p13
+allSd <- c(p11,p12,p13)
+```
+Максимальные значения:
+```{r}
+max1 <- max(rez1);max1
+max2 <- max(rez2);max2
+max3 <- max(rez3);max3
+```
+Минимальные значения:
+```{r}
+min1 <- min(rez1);min1
+min2 <- min(rez2);min2
+min3 <- min(rez3);min3
+```
+Величины размаха:
+```{r}
+R1<-max1-min1;R1
+R2<-max2-min2;R2
+R3<-max3-min3;R3
+```
+Добавление в список параметров:
+```{r}
+params<-c(p11,p12,p13,max1,max2,max3,min1,min2,min3,R1,R2,R3);
+```
+
+
+Генерация 20 выборок с n = 40, распределенной по НЗР:
+```{r}
+n <- 40
+varCount<-20
+foo = rnorm
+xs <- foo(n*varCount,130,123)
+M <- matrix(xs,varCount,n)
+```
+Значения оценок:
+```{r}
+rez1 <- apply (M,1,function(x)(2/n)*sum(x))
+rez2 <- apply (M,1,function(x)((n+1)/n)*max(x))
+rez3 <- apply (M,1,function(x)(2*quantile(x,c(0.5))))
+str(rez1)
+str(rez2)
+str(rez3)
+```
+Отображение получившихся оценок:
+```{r}
+plot(rez1,col="red")
+lines(rez1, col = "red")
+par(new = T)
+plot(rez2, col="blue")
+lines(rez2,col="blue")
+par(new = T)
+plot(rez3, col = "yellow")
+lines(rez3, col = "yellow")
+par(new = F)
+```
+Среднеквадратическое отклонение:
+```{r}
+p11 <- sd(rez1);p11
+p12 <- sd(rez2);p12
+p13 <- sd(rez3);p13
+allSd <- c(allSd,p11,p12,p13)
+```
+Максимальные значения:
+```{r}
+max1 <- max(rez1);max1
+max2 <- max(rez2);max2
+max3 <- max(rez3);max3
+```
+Минимальные значения:
+```{r}
+min1 <- min(rez1);min1
+min2 <- min(rez2);min2
+min3 <- min(rez3);min3
+```
+Величины размаха:
+```{r}
+R1<-max1-min1;R1
+R2<-max2-min2;R2
+R3<-max3-min3;R3
+```
+Добавление в список параметров:
+```{r}
+params<-c(params,p11,p12,p13,max1,max2,max3,min1,min2,min3,R1,R2,R3)
+```
+
+
+Генерация 20 выборок с n = 160, распределенной по НЗР:
+```{r}
+n <- 160
+varCount<-20
+foo = rnorm
+xs <- foo(n*varCount,490,483)
+M <- matrix(xs,varCount,n)
+```
+Значения оценок:
+```{r}
+rez1 <- apply (M,1,function(x)(2/n)*sum(x))
+rez2 <- apply (M,1,function(x)((n+1)/n)*max(x))
+rez3 <- apply (M,1,function(x)(2*quantile(x,c(0.5))))
+str(rez1)
+str(rez2)
+str(rez3)
+```
+Отображение получившихся оценок:
+```{r}
+plot(rez1,col="red")
+lines(rez1, col = "red")
+par(new = T)
+plot(rez2, col="blue")
+lines(rez2,col="blue")
+par(new = T)
+plot(rez3, col = "yellow")
+lines(rez3, col = "yellow")
+par(new = F)
+```
+Среднеквадратическое отклонение:
+```{r}
+p11 <- sd(rez1);p11
+p12 <- sd(rez2);p12
+p13 <- sd(rez3);p13
+allSd <- c(allSd,p11,p12,p13)
+```
+Максимальные значения:
+```{r}
+max1 <- max(rez1);max1
+max2 <- max(rez2);max2
+max3 <- max(rez3);max3
+```
+Минимальные значения:
+```{r}
+min1 <- min(rez1);min1
+min2 <- min(rez2);min2
+min3 <- min(rez3);min3
+```
+Величины размаха:
+```{r}
+R1<-max1-min1;R1
+R2<-max2-min2;R2
+R3<-max3-min3;R3
+```
+Добавление в список параметров:
+```{r}
+params<-c(params,p11,p12,p13,max1,max2,max3,min1,min2,min3,R1,R2,R3)
+```
+
+
+Для n = 10:
+```{r}
+matrix(params[seq(1,12)],3,4)
+```
+
+
+Для n = 40:
+```{r}
+matrix(params[seq(13,24)],3,4)
+```
+
+
+Для n = 160:
+```{r}
+matrix(params[seq(25,36)],3,4)
+```
+
+
+Среднеквадратические отклонения 3ех оценок на графике:
+```{r}
+plot(allSd[seq(1,3)],col="red")
+lines(allSd[seq(1,3)], col = "red")
+par(new = T)
+plot(allSd[seq(4,6)],col="yellow")
+lines(allSd[seq(4,6)], col = "yellow")
+par(new = T)
+plot(allSd[seq(7,9)],col="blue")
+lines(allSd[seq(7,9)], col = "blue")
+par(new = F)
+```
+Вывод о точности оценок:
+
+
+
+
+ЭКСПОНЕНЦИАЛЬНО РАСПРЕДЕЛЕННЫЕ ВЕЛИЧИНЫ:
+
+Генерация 20 выборок с n = 10, распределенной по ЭЗР:
+```{r}
+n <- 10
+varCount <- 20
+foo = rexp
+xs <- foo (n * varCount, 11);
+M <- matrix(xs,varCount,n);
+```
+Значения оценок:
+```{r}
+rez1 <- apply (M,1,function(x)(2/n)*sum(x))
+rez2 <- apply (M,1,function(x)((n+1)/n)*max(x))
+rez3 <- apply (M,1,function(x)(2*quantile(x,c(0.5))))
+str(rez1)
+str(rez2)
+str(rez3)
+```
+Отображение получившихся оценок:
+```{r}
+plot(rez1,col="red")
+lines(rez1, col = "red")
+par(new = T)
+plot(rez2, col="blue")
+lines(rez2,col="blue")
+par(new = T)
+plot(rez3, col = "yellow")
+lines(rez3, col = "yellow")
+par(new = F)
+```
+Среднеквадратические отклонения:
+```{r}
+p11 <- sd(rez1);p11
+p12 <- sd(rez2);p12
+p13 <- sd(rez3);p13
+allSd <- c(p11,p12,p13)
+```
+Максимальные значения:
+```{r}
+max1 <- max(rez1);max1
+max2 <- max(rez2);max2
+max3 <- max(rez3);max3
+```
+Минимальные значения:
+```{r}
+min1 <- min(rez1);min1
+min2 <- min(rez2);min2
+min3 <- min(rez3);min3
+```
+Величины размаха:
+```{r}
+R1<-max1-min1;R1
+R2<-max2-min2;R2
+R3<-max3-min3;R3
+```
+Добавление в список параметров:
+```{r}
+params<-c(p11,p12,p13,max1,max2,max3,min1,min2,min3,R1,R2,R3);
+```
+
+
+Генерация 20 выборок с n = 40, распределенной по ЭЗР:
+```{r}
+n <- 40
+varCount <- 20
+foo = rexp
+xs <- foo (n * varCount, 43);
+M <- matrix(xs,varCount,n);
+```
+Значения оценок:
+```{r}
+rez1 <- apply (M,1,function(x)(2/n)*sum(x))
+rez2 <- apply (M,1,function(x)((n+1)/n)*max(x))
+rez3 <- apply (M,1,function(x)(2*quantile(x,c(0.5))))
+str(rez1)
+str(rez2)
+str(rez3)
+```
+Отображение получившихся оценок:
+```{r}
+plot(rez1,col="red")
+lines(rez1, col = "red")
+par(new = T)
+plot(rez2, col="blue")
+lines(rez2,col="blue")
+par(new = T)
+plot(rez3, col = "yellow")
+lines(rez3, col = "yellow")
+par(new = F)
+```
+Среднеквадратические отклонения:
+```{r}
+p11 <- sd(rez1);p11
+p12 <- sd(rez2);p12
+p13 <- sd(rez3);p13
+allSd <- c(allSd,p11,p12,p13)
+```
+Максимальные значения:
+```{r}
+max1 <- max(rez1);max1
+max2 <- max(rez2);max2
+max3 <- max(rez3);max3
+```
+Минимальные значения:
+```{r}
+min1 <- min(rez1);min1
+min2 <- min(rez2);min2
+min3 <- min(rez3);min3
+```
+Величины размаха:
+```{r}
+R1<-max1-min1;R1
+R2<-max2-min2;R2
+R3<-max3-min3;R3
+```
+Добавление в список параметров:
+```{r}
+params<-c(params,p11,p12,p13,max1,max2,max3,min1,min2,min3,R1,R2,R3);
+```
+
+Генерация 20 выборок с n = 160, распределенной по ЭЗР:
+```{r}
+n <- 160
+varCount <- 20
+foo = rexp
+xs <- foo (n * varCount, 165);
+M <- matrix(xs,varCount,n);
+```
+Значения оценок:
+```{r}
+rez1 <- apply (M,1,function(x)(2/n)*sum(x))
+rez2 <- apply (M,1,function(x)((n+1)/n)*max(x))
+rez3 <- apply (M,1,function(x)(2*quantile(x,c(0.5))))
+str(rez1)
+str(rez2)
+str(rez3)
+```
+Отображение получившихся оценок:
+```{r}
+plot(rez1,col="red")
+lines(rez1, col = "red")
+par(new = T)
+plot(rez2, col="blue")
+lines(rez2,col="blue")
+par(new = T)
+plot(rez3, col = "yellow")
+lines(rez3, col = "yellow")
+par(new = F)
+```
+Среднеквадратические отклонения:
+```{r}
+p11 <- sd(rez1);p11
+p12 <- sd(rez2);p12
+p13 <- sd(rez3);p13
+allSd <- c(allSd,p11,p12,p13)
+```
+Максимальные значения:
+```{r}
+max1 <- max(rez1);max1
+max2 <- max(rez2);max2
+max3 <- max(rez3);max3
+```
+Минимальные значения:
+```{r}
+min1 <- min(rez1);min1
+min2 <- min(rez2);min2
+min3 <- min(rez3);min3
+```
+Величины размаха:
+```{r}
+R1<-max1-min1;R1
+R2<-max2-min2;R2
+R3<-max3-min3;R3
+```
+Добавление в список параметров:
+```{r}
+params<-c(params,p11,p12,p13,max1,max2,max3,min1,min2,min3,R1,R2,R3);
+```
+
+Для n = 10:
+```{r}
+matrix(params[seq(1,12)],3,4)
+```
+Для n = 40:
+```{r}
+matrix(params[seq(13,24)],3,4)
+```
+Для n = 160:
+```{r}
+matrix(params[seq(25,36)],3,4)
+```
+Среднеквадратические отклонения 3ех оценок на графике:
+```{r}
+plot(allSd[seq(1,3)],col="red",ylim=c(min(min1,min2,min3),max(max1,max2,max3)))
+lines(allSd[seq(1,3)], col = "red")
+par(new = T)
+plot(allSd[seq(4,6)],col="yellow")
+lines(allSd[seq(4,6)], col = "yellow")
+par(new = T)
+plot(allSd[seq(7,9)],col="blue")
+lines(allSd[seq(7,9)], col = "blue")
+par(new = F)
+```
+Вывод о точности оценок:
+
+ТЕМА 3.
+```{r}
+library(sm)
+library(ggplot2)
+```
+
+Данные об индексе цен на первичном рынке жилья РФ по годам, взятые с адреса http://www.gks.ru/free_doc/new_site/prices/housing/tab9.htm :
+```{r}
+Z <- c(156.9,146.3,113.1,125.1,122.5,118.8,118.5,117.5,147.7,123.4,110.3,92.4,100.3,106.7,110.7,104.8,105.7,99.7,99.6,101.0,106.3)
+hist(Z)
+sm.density(Z,model = "Normal",xlab="Price",ylab="Функция плотности распределения")
+```
+```{r}
+library(nortest)
+lillie.test(Z)
+```
+Вывод: 
+Так как p-value > 0.2882, то мы принимаем гипотезу H0 о нормальности распределения генеральной совокупности.
+```{r}
+library(moments)
+skewness(Z)
+kurtosis(Z)
+```
+
+Вывод: 
+По гистограмме видно, что распределение не является нормальным, т.к. оно не симметрично и не унимодально.У нормального распределения коэффициент эксцесса равен 0 и коэффициет ассиметрии равен 0, у нас эксцесс равен 3.356531, а асимметрии 1.060795. 
+
+
+ТЕМА №4.
+
+Вектор Z1 - количество суицидов в стране, вектор Z2 - населения соответвующей страны.
+(https://www.kaggle.com/russellyates88/suicide-rates-overview-1985-to-2016/version/1)
+```{r}
+Z1 = c(1933,11,82017,1880,99,70044,49921,1615,92,456,176,59163,62547,347,316,226484,36170,40,107450,40861,53059,6760,18352,41191,411,43489,15208,0,20652,11670,6807,300,33620,327605,3210,289746,12333,37,8103,3411,73558,1101,12509,11270,131518,183,805562,101464,48,965,13076,12531,27407,1952,25,20,584,3892,111095,296,472,50727,14365,2005,16855,31,3480,4780,21324,137428,23972,9018,574,261688,72639,1208349,0,227,122,3,24032,95,10066,13392,10588,7315,99897,55497,2146,37671,26071,110190,4030,10098,8619,319444,580,136541,1031836,13101)
+Z2 = c(240939,1087,3549219,195422,1505,1507502,585913,644000,3854,6688,6499,480895,651450,2432,227892,15430579,319134,7582,1927751,1275612,4070023,371275,265327,600657,31234,502574,340483,700,1505127,625429,71561,83764,292608,3878553,209600,3716736,551510,1312,1988348,7232,536865,11268,318825,733603,2775414,63432,5287719,1370388,294,10485,547463,96070,168917,32098,33801,3263,12789,26298,1915217,148196,39987,1025443,305750,75925,320375,20933,67619,80188,10091572,1855256,537929,230178,6093,2347429,1041307,7464309,500,3082,1459,908,336506,1076,205578,277978,95590,5243427,2329505,1606015,51324,570983,411880,4525574,90557,6435462,35187,2010824,346223,3840476,20342901,241598)
+```
+
+Коэффициент корреляции Пирсона при 95% уровне доверии:
+```{r}
+cor.test(Z1,Z2)
+```
+Вывод:
+Так как p-value < 0.05, то мы отвергаем гипотезу о некоррелированности популяции в стране и количества самоубийств.
+
+Коэффициент корреляции Спирмена при 95% уровне доверии:
+```{r}
+cor.test(Z1,Z2,method="spearman")
+```
+
+ТЕМА №5.
+
+```{r}
+library(vegan)
+Y<-c(5.3,5.7,4.9,5.1,5.2,5.2,3.5,4.7,4.7,4.5,4.3,4.5,3.2,3.4,3.8,3.9,4.9,5.1,4.8,3.1);
+X1 <- c(4.7,5.2,4.5,5.6,5.6,3.4,3.9,4.7,4.8,4.4,3.2,4.3,4.5,5.2,5.3,4.8,3.8,4.1,3.5,3.2);
+X2 <- c(4.6,5.4,4.9,4.8,5.8,5.9,3.8,4.2,4.3,4.9,5.2,4.3,4.2,4.5,3.2,4.2,3.4,5.3,5.6,5.7);
+X3 <- c(4.2,4.7,5.3,5.2,4.2,5.9,3.5,4.3,4.5,4.9,4.3,4.3,4.2,3.5,3.7,3.8,4.3,4.2,4.7,4.9);
+X4 <- c(4.4,4.5,4.4,5.2,3.5,4.7,4.8,4.9,5.3,5.3,5.2,4.6,4.7,3.9,3.8,4.7,3.5,2.4,5.6,2.9);
+M <- matrix(c(Y,X1,X2,X3),20,5);M
+```
+Коэффициент согласованности между несколькими экспертами:
+```{r}
+kendall.global(M)
+```
+Апостериорные тесты вкладов отдельных экспертов (переменных, видов) в общую согласованность:
+```{r}
+kendall.post(M)
+```
+Вывод:
+Коэффициент конкордации равен 0,485, слеовательно согласованность экспертов средняя.
+
+

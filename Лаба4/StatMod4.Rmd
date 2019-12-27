@@ -1,0 +1,214 @@
+---
+title: "Untitled"
+author: "Igor"
+date: '31 мая 2019 г '
+output: word_document
+---
+
+```{r}
+library(ggplot2)
+library(memisc)
+library(DescTools)
+library(lmtest)
+library(caTools)
+library(dplyr)
+library(readxl)
+library(knitr)
+library(kernlab)
+library(caret)
+library(mfx)
+library(pROC)
+library(ResourceSelection)
+library(ROCR)
+library(nortest)
+```
+
+```{r}
+data <- read.csv("C:/Users/Igor/Downloads/diabetes.csv")
+data <- select(data,"Pregnancies","Glucose","BloodPressure","BMI","DiabetesPedigreeFunction","Outcome")
+names(data)
+```
+
+```{r}
+cor.test(data$Pregnancies,data$Glucose)
+cor.test(data$Pregnancies,data$BloodPressure)
+cor.test(data$Pregnancies,data$BMI)
+cor.test(data$Pregnancies,data$DiabetesPedigreeFunction)
+cor.test(data$Glucose,data$BloodPressure)
+cor.test(data$Glucose,data$BMI)
+cor.test(data$Glucose,data$DiabetesPedigreeFunction)
+cor.test(data$BloodPressure,data$BMI)
+cor.test(data$BloodPressure,data$DiabetesPedigreeFunction)
+cor.test(data$BMI,data$DiabetesPedigreeFunction)
+```
+Вывод: переменные, значительно коррелирующие между собой отсутствуют, так как коэффициент корреляции между любыми двумя независимыми признаками <|0.9|.
+
+Преобразуем зависимую переменную как целочисленную:
+```{r}
+data$Outcome<-as.integer(data$Outcome)
+```
+Разделим выборку на тестовую и обучающую:
+```{r}
+set.seed(1)
+split<-sample.split(data$Outcome,SplitRatio = 0.7)
+train<-subset(data,split==TRUE)
+test<-subset(data,split==FALSE)
+```
+
+Построим регрессионные модели Probit и Logit:
+
+Заметка: после первой попытки построить модели пришлось исключить три независимых признака (“SkinThickness”,“Insulin”,“Age”), так как они были статистиечски не значимы.
+Вторая попытка: 
+Logit модель:
+```{r}
+model_1<-glm(Outcome~.,train,family = binomial(link="logit"))
+summary(model_1)
+```
+Probit модель:
+```{r}
+model_2<-glm(Outcome~.,train,family=binomial(link="probit"))
+summary(model_2)
+```
+Гоммит модель:
+```{r}
+model_3<-glm(Outcome~.,train,family = binomial(link="cloglog"))
+summary(model_3)
+```
+Вывод: все независимые признаки статичтически значимы, т.к. для всех признаков Pr(>|z|) <0.05.
+
+Сравнение трех моделей по информационным критериям:
+
+```{r}
+mtable(model_1,model_2,model_3,summary.stats = c("AIC","BIC"))
+```
+Вывод: наименьшие информационные критерии у Логит-модели.
+
+Для Логит модели: Коэффициент детерминации МакФаддена:
+```{r}
+PseudoR2(model_1,which="McFadden")
+```
+Вывод: коэффициент достаточно мал, ~30%, а это значит изменения зависимой переменной объясняются изменениями совокупности признаков всего лишь на 30%.
+```{r}
+lrtest(model_1)
+```
+Вывод: так как p < 0.05, следовательно модель является значимой.
+
+Для Пробит модели:
+```{r}
+PseudoR2(model_2,which = "McFadden")
+```
+Вывод: коэффициент достаточно мал, ~29%, а это значит изменения зависимой переменной объясняются изменениями совокупности признаков всего лишь на 29%.
+```{r}
+lrtest(model_2)
+```
+Для гампит модели:
+```{r}
+PseudoR2(model_3,which = "McFadden")
+```
+```{r}
+lrtest(model_3)
+```
+Вывод: так как p < 0.05, следовательно модель является значимой.
+```{r}
+Preds1<-predict(model_1,test,type="response")
+hoslem.test(test$Outcome,Preds1,g=10)
+```
+Вывод: для логит-модели степень соответствия между оцененнными вероятностями, спрогнозированные моделью и реальныеми вероятностями очень мала, всего лишь 0.03.
+```{r}
+Preds2<-predict(model_2,test,type="response")
+hoslem.test(test$Outcome,Preds2,g=10)
+```
+Вывод: для пробит-модели степень соответствия между оцененными вероятностями, спрогнозированные моделью и реальныеми вероятностями очень мала, всего лишь 0.01.
+```{r}
+Preds3<-predict(model_3,test,type="response")
+hoslem.test(test$Outcome,Preds3,g=10)
+```
+Вывод: для пробит-модели степень соответствия между оцененными вероятностями, спрогнозированные моделью и реальныеми вероятностями средняя, 0.04, что является лучшим показателем среди других моделей.
+```{r}
+qqnorm(model_1$residuals)
+```
+Вывод: судя по графику остатки не подчиняются нормальному закону распределения.
+```{r}
+lillie.test(model_1$residuals)
+```
+Вывод: поскольку p-value < 0.05 то нулевая гипотеза о согласии распределения остатков с нормальным законом распределения отвергается.
+```{r}
+logitmfx(Outcome~.,data=test)
+```
+Вывод: Маржинальный эффект для логит модели:
+Признаки:
+Беременности: 4.7%
+Уровень глюкозы: 5.9%
+Уровень кровеносного давления: -0.2%
+БМИ: 1.6%
+Диабет: 12.5%
+
+```{r}
+probitmfx(Outcome~.,data=test)
+```
+Вывод: Маржирнальный ээфект для Пробит модели:
+Признаки:
+Беременности: 4.7%
+Уровень глюкозы: 0.5%
+Кровеносное давление: -0.17%
+БМИ: 1.5%
+Диабет: 10%
+
+```{r}
+inter <- (model_3$coefficients)[1]
+a <- exp(-exp(inter))*exp(inter)
+a * (model_3$coefficients)[2]
+a * (model_3$coefficients)[3]
+a * (model_3$coefficients)[4]
+a * (model_3$coefficients)[5]
+a * (model_3$coefficients)[6]
+```
+Вывод: Маржинальный эффект для Гомпит модели:
+Признаки:
+Беременности: 0.16%
+Уровень глюкозы: 0.0005%
+Кровеносное давление: -0.17%
+БМИ: 1.5%
+Диабет: 10%
+
+ROC-кривая для Логит модели:
+```{r}
+pr<-prediction(Preds1,test$Outcome)
+auc<-AUC(test$Outcome,Preds1)
+prf<-performance(pr,measure="tpr",x.measure = "fpr")
+plot(prf)
+lines(c(0,1),c(0,1))
+text(0.6,0.2,paste("AUC=",round(auc,4)),cex=1.4)
+title("ROC-кривая")
+```
+Вывод: так как коэффициент AUC = 0.06, значит качество логит-модель является неудовлетворительной.
+
+ROC-кривая для Пробит модели:
+```{r}
+pr<-prediction(Preds2,test$Outcome)
+auc<-AUC(test$Outcome,Preds2)
+prf<-performance(pr,measure="tpr",x.measure = "fpr")
+plot(prf)
+lines(c(0,1),c(0,1))
+text(0.6,0.2,paste("AUC=",round(auc,4)),cex=1.4)
+title("ROC-кривая")
+```
+Вывод: так как коэффициент AUC = 0.06, значит качество пробит-модели является неудовлетварительной.
+
+ROC-кривая для Гампит-модели:
+```{r}
+pr<-prediction(Preds3,test$Outcome)
+auc<-AUC(test$Outcome,Preds3)
+prf<-performance(pr,measure="tpr",x.measure = "fpr")
+plot(prf)
+lines(c(0,1),c(0,1))
+text(0.6,0.2,paste("AUC=",round(auc,4)),cex=1.4)
+title("ROC-кривая")
+```
+Вывод: так как коэффициент AUC = 0.09, значит качество логит-модели является неудовлетворительной, но это лучший показатель среди других моделей.
+
+
+
+
+
+
